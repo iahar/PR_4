@@ -55,8 +55,6 @@ class VariablePartitionMemoryMamager(IMemoryManager):
                         self.Space[i] = self.Space[j]
                         self.Space[j] = temp
         
-
-
     def allocate_memory(self, process: Process): 
         self.Mutex.acquire()          
         distributed_size = process.size
