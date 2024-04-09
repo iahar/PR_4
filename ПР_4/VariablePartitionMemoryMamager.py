@@ -32,11 +32,12 @@ class VariablePartitionMemoryMamager(IMemoryManager):
                 for j in range(len(self.Spaces)-1, len(self.Spaces)//2, -1):
                     if self.Spaces[j].locked == True:
                         if self.Spaces[j].busySize <= self.Spaces[i].size:
-                            temp_i = self.Spaces[i].size
-                            temp_j = self.Spaces[j].size
+                            size_i = self.Spaces[i].size
+                            size_j = self.Spaces[j].size
                             self.Spaces[i] = self.Spaces[j]
-                            self.Spaces[i].size = temp_i
-                            self.Spaces[j] = Space(temp_j)
+                            self.Spaces[i].size = size_i
+                            self.Spaces[j] = Space(size_j)
+                            self.fillSizes -= size_j - size_i
                             break
         print("-----compress-------")
         self.display_memory()
@@ -51,12 +52,11 @@ class VariablePartitionMemoryMamager(IMemoryManager):
                     space.process = process
                     space.locked = True                     
                     self.fillPages += 1
+                    self.fillSizes += space.size
                     if space.size >= distributed_size: 
-                        self.fillSizes += distributed_size
                         space.busySize += distributed_size
                         distributed_size = 0                        
-                    else:
-                        self.fillSizes += space.size
+                    else:                        
                         space.busySize += space.size
                         distributed_size -= space.size                        
                     process.add_space(space)                    
@@ -74,7 +74,7 @@ class VariablePartitionMemoryMamager(IMemoryManager):
                 space.locked = False
                 space.type = 0
                 self.fillPages -= 1
-                self.fillSizes -= space.busySize
+                self.fillSizes -= space.size
                 space.busySize = 0
         process.clear_space()
         self.Mutex.release()        
