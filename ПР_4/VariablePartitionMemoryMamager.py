@@ -24,28 +24,6 @@ class VariablePartitionMemoryMamager(IMemoryManager):
                     countSize += sizeOfSpace
         self.Spaces.sort(key = lambda item: item.size)
 
-    def ompress_memory(self):
-        position = self.countPages - 1
-        while True:
-            is_compress = False
-            checkSpace = self.Spaces[position]
-            if (((checkSpace.size - checkSpace.busySize) < 2 and checkSpace.locked == True) or checkSpace.locked == False):
-                position -= 1
-                if (position < self.countPages / 2): break
-                else: continue
-            for freeSpace in self.Spaces:
-                if (freeSpace.locked == False and freeSpace.size >= checkSpace.busySize): # ???
-                    freeSpace.process = checkSpace.process
-                    if (freeSpace.process != None): freeSpace.process.clear_space()
-                    freeSpace.process.add_space(freeSpace)
-                    freeSpace.locked = True
-                    checkSpace.locked = False
-                    is_compress = True
-                    position -= 1
-                    break
-            if (is_compress == False or position < self.countPages / 2):
-                break
-
     def compress_memory(self): 
         for i in range(len(self.Space)-1, -1, -1):
             if self.Space[i].locked == False:
@@ -80,7 +58,6 @@ class VariablePartitionMemoryMamager(IMemoryManager):
         else:
             self.compress_memory()              
         self.Mutex.release()
-
 
     def release_memory(self, process: Process):
         self.Mutex.acquire()
