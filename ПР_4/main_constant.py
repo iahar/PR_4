@@ -51,7 +51,7 @@ def main_thread(all_task):
             process.status = 1
             break
         #print(f'{process.id} получил память для загрузки. Начинаем выполнение...') 
-        thread = threading.Thread(target=access_resource, daemon=True, args=(random.randint(3,6), process, ))
+        thread = threading.Thread(target=access_resource, daemon=True, args=(random.randint(1,1), process, ))
         thread.start()   
     while count_working_process != 0:
         time.sleep(1)
@@ -59,7 +59,7 @@ def main_thread(all_task):
 
 
 #создадим процессы
-all_task = 15
+all_task = 300
 thread = threading.Thread(target=main_thread, daemon=True, args=(all_task, ))
 thread.start()
 count_second = 0

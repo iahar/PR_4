@@ -26,7 +26,7 @@ class VariablePartitionMemoryMamager(IMemoryManager):
 
     # нужно чтоб допустим менялась ячейка на 8 с занятыми 2 с пустой ячейкой на 2
     def compress_memory(self): 
-        self.display_memory()
+        #self.display_memory()
         for i in range(len(self.Spaces)//2):
             if self.Spaces[i].locked == False:
                 for j in range(len(self.Spaces)-1, len(self.Spaces)//2, -1):
@@ -39,8 +39,8 @@ class VariablePartitionMemoryMamager(IMemoryManager):
                             self.Spaces[j] = Space(size_j)
                             self.fillSizes -= size_j - size_i
                             break
-        print("-----compress-------")
-        self.display_memory()
+        #print("-----compress-------")
+        #self.display_memory()
         
     def allocate_memory(self, process: Process): 
         self.Mutex.acquire()           
