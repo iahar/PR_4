@@ -23,6 +23,7 @@
   <ItemGroup>
     <Compile Include="ConstantPartitionMemoryManager.py" />
     <Compile Include="VariablePartitionMemoryMamager.py" />
+    <Compile Include="PartitionMemoryMamager.py" />
     <Compile Include="IMemory.py" />
     <Compile Include="main_constant.py" />
     <Compile Include="process.py" />

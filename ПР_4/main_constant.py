@@ -38,7 +38,7 @@ def main_thread(all_task):
         #print(f'{process.id} пробует получить память для загрузки')   
 
     #проверка менеджера памяти с постоянными разделами
-    memoryManager = VariablePartitionMemoryMamager(64, 8, True)
+    memoryManager = VariablePartitionMemoryMamager(64, 8, True) 
     count_working_process = 0
     count_worked_process = 0 
     count_second = 0
@@ -51,7 +51,7 @@ def main_thread(all_task):
             process.status = 1
             break
         #print(f'{process.id} получил память для загрузки. Начинаем выполнение...') 
-        thread = threading.Thread(target=access_resource, daemon=True, args=(random.randint(1,1), process, ))
+        thread = threading.Thread(target=access_resource, daemon=True, args=(random.randint(1,3), process, ))
         thread.start()   
     while count_working_process != 0:
         time.sleep(1)
@@ -59,7 +59,7 @@ def main_thread(all_task):
 
 
 #создадим процессы
-all_task = 300
+all_task = 200
 thread = threading.Thread(target=main_thread, daemon=True, args=(all_task, ))
 thread.start()
 count_second = 0

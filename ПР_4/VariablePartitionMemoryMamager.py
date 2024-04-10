@@ -6,82 +6,69 @@ import threading
 class VariablePartitionMemoryMamager(IMemoryManager):
     def __init__(self, size, sizeOfSpace, compress):
         self.Mutex = threading.Lock()
-        self.Spaces = list()
+        self.Spaces = [Space(size)]
         self.totalSize = size
-        self.countPages = 0
-        self.fillPages = 0
+        self.countPages = 1
         self.fillSizes = 0
         self.compress = compress
-        cells = [2,4,6,8]
-        countSize = 0
-        while countSize < size:
-            for i in range(4):
-                sizeOfSpace = cells[i]
-                if ((countSize + sizeOfSpace) <= size):
-                    space = Space(sizeOfSpace)
-                    self.Spaces.append(space)
-                    self.countPages += 1
-                    countSize += sizeOfSpace
-        self.Spaces.sort(key = lambda item: item.size)
-
-    # нужно чтоб допустим менялась ячейка на 8 с занятыми 2 с пустой ячейкой на 2
-    def compress_memory(self): 
-        #self.display_memory()
-        for i in range(len(self.Spaces)//2):
-            if self.Spaces[i].locked == False:
-                for j in range(len(self.Spaces)-1, len(self.Spaces)//2, -1):
-                    if self.Spaces[j].locked == True:
-                        if self.Spaces[j].busySize <= self.Spaces[i].size:
-                            size_i = self.Spaces[i].size
-                            size_j = self.Spaces[j].size
-                            self.Spaces[i] = self.Spaces[j]
-                            self.Spaces[i].size = size_i
-                            self.Spaces[j] = Space(size_j)
-                            self.fillSizes -= size_j - size_i
-                            break
-        #print("-----compress-------")
-        #self.display_memory()
         
+    def compress_memory(self): 
+        self.display_memory()
+        i = 0
+        for space1 in self.Spaces:            
+            if space1.locked == False:
+                j = i+1
+                for space2 in self.Spaces[i+1:]:
+                    if space2.locked == True:
+                        temp = self.Spaces[i]
+                        self.Spaces[i] = self.Spaces[j]
+                        self.Spaces[j] = temp
+                        break
+                    else:
+                        temp = self.Spaces.pop(j)
+                        self.Spaces[i].size += temp.size
+                        j -= 1
+                        self.countPages -= 1
+                        break
+                j += 1
+            i += 1
+        print("-----compress-------")
+        self.display_memory()
+        
+    # алгоритм добавления раздела доделать
     def allocate_memory(self, process: Process): 
-        self.Mutex.acquire()           
-        distributed_size = process.size
-        if (self.totalSize - self.fillSizes) >= process.size:
-            for space in self.Spaces: 
-                if space.locked == False:
-                    space.type = 1
-                    space.process = process
-                    space.locked = True                     
-                    self.fillPages += 1
-                    self.fillSizes += space.size
-                    if space.size >= distributed_size: 
-                        space.busySize += distributed_size
-                        distributed_size = 0                        
-                    else:                        
-                        space.busySize += space.size
-                        distributed_size -= space.size                        
-                    process.add_space(space)                    
-                    if distributed_size == 0:
-                        process.countSpace = process.size
-                        break  
-                      
+        self.Mutex.acquire()  
+        temp_size = 0
+        for space in self.Spaces:              
+            if space.locked == False and space.size >= process.size:
+                space.size = process.size
+                space.locked = True
+                space.process = process
+                process.add_space(space)
+                process.status = 1                
+                self.fillSizes += process.size
+                if self.fillSizes < self.totalSize: 
+                    self.countPages += 1
+                    self.Spaces.append(Space(self.totalSize - temp_size - process.size))
+                break
+            temp_size += space.size
         self.Mutex.release()
 
     def release_memory(self, process: Process):
         self.Mutex.acquire()
-        for space in process.Spaces:
+        for space in self.Spaces:
             if space.process == process:
                 space.process = None
                 space.locked = False
                 space.type = 0
-                self.fillPages -= 1
-                self.fillSizes -= space.size
+                self.fillSizes -= process.size
                 space.busySize = 0
         process.clear_space()
+        if self.compress: self.compress_memory()
         self.Mutex.release()        
 
     def get_status(self):
-        if self.compress: self.compress_memory()
-        return f"Менеджер памяти с перемещаемыми разделами: Занято разделов: {self.fillPages}/{self.countPages} Занято памяти: {self.fillSizes}/{self.totalSize}"
+        return f"Менеджер памяти с перемещаемыми разделами: Разделов: {self.countPages} Занято памяти: {self.fillSizes}/{self.totalSize}"
     
     def wakeup_process(self, process: Process):
         return
@@ -89,4 +76,4 @@ class VariablePartitionMemoryMamager(IMemoryManager):
     def display_memory(self): 
         print("Memory Spaces:") 
         for space in self.Spaces: 
-            print(f"Size: {space.size}, {'Busy' if space.locked else 'Free'}: {space.busySize}, Process: {space.process.id if space.process else 'None'}")
+            print(f"Size: {space.size}, {'Busy' if space.locked else 'Free'}, Process: {space.process.id if space.process else 'None'}")
