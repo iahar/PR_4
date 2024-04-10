@@ -35,7 +35,6 @@ class VariablePartitionMemoryMamager(IMemoryManager):
         print("-----compress-------")
         self.display_memory()
         
-    # алгоритм добавления раздела доделать
     def allocate_memory(self, process: Process): 
         self.Mutex.acquire()  
         temp_size = 0
